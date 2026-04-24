@@ -62,6 +62,13 @@ class AuthService {
         },
       );
 
+      // DEBUG - À supprimer après diagnostic
+      print('=== LOGIN DEBUG ===');
+      print('URL: ${ApiConfig.loginUrl}');
+      print('STATUS: ${response.statusCode}');
+      print('BODY: ${response.body}');
+      print('==================');
+
       final data = await _apiService.handleResponse(response);
 
       // Save token and user data if login successful

@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/motw.dart';
+import '../providers/auth_provider.dart';
 import '../providers/motw_provider.dart';
 import '../providers/comment_provider.dart';
 import '../config/api_config.dart';
 import '../widgets/comment_item.dart';
+import 'login_screen.dart';
 
 class MOTWDetailScreen extends StatefulWidget {
   final String motwSlug;
@@ -229,7 +231,40 @@ class _MOTWDetailScreenState extends State<MOTWDetailScreen> {
                     ),
 
                     // Comment Input
-                    Container(
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        if (!authProvider.isAuthenticated) {
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, -2),
+                                ),
+                              ],
+                            ),
+                            child: SafeArea(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                  );
+                                },
+                                icon: const Icon(Icons.login),
+                                label: const Text('Login to comment'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurple,
+                                  foregroundColor: Colors.white,
+                                  minimumSize: const Size.fromHeight(48),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         boxShadow: [
@@ -280,6 +315,8 @@ class _MOTWDetailScreenState extends State<MOTWDetailScreen> {
                           ],
                         ),
                       ),
+                    );
+                      },
                     ),
                   ],
                 ),

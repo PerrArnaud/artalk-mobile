@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMOTW();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadMOTW());
     _scrollController.addListener(_onScroll);
   }
 
@@ -46,12 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleLogout() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.logout();
-
     if (!mounted) return;
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    setState(() {});
   }
 
   @override
@@ -64,6 +60,17 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Consumer<AuthProvider>(
             builder: (context, authProvider, _) {
+              if (!authProvider.isAuthenticated) {
+                return TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.login, color: Colors.white),
+                  label: const Text('Login', style: TextStyle(color: Colors.white)),
+                );
+              }
               return PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'logout') {

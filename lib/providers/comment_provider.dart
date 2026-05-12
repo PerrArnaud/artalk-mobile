@@ -96,4 +96,65 @@ class CommentProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  Future<bool> reportComment({
+    required int commentId,
+    required String reason,
+  }) async {
+    _isSubmitting = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.post(
+        ApiConfig.reportCommentUrl(commentId),
+        {'reason': reason},
+        includeAuth: true,
+      );
+
+      final data = await _apiService.handleResponse(response);
+
+      if (data['success'] == true) {
+        // Mark the comment as reported locally so the UI updates immediately
+        for (final entry in _commentsByMotw.entries) {
+          final updated = entry.value.map((c) {
+            if (c.id == commentId) {
+              return c.copyWith(reportedByCurrentUser: true);
+            }
+            // Also check replies
+            final updatedReplies = c.replies.map((r) {
+              return r.id == commentId
+                  ? r.copyWith(reportedByCurrentUser: true)
+                  : r;
+            }).toList();
+            return Comment(
+              id: c.id,
+              content: c.content,
+              createdAt: c.createdAt,
+              validated: c.validated,
+              user: c.user,
+              motwSlug: c.motwSlug,
+              parentCommentId: c.parentCommentId,
+              replies: updatedReplies,
+              reportedByCurrentUser: c.reportedByCurrentUser,
+            );
+          }).toList();
+          _commentsByMotw[entry.key] = updated;
+        }
+        _isSubmitting = false;
+        notifyListeners();
+        return true;
+      }
+
+      _errorMessage = data['message'] as String? ?? 'Échec du signalement';
+      _isSubmitting = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isSubmitting = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

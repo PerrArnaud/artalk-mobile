@@ -17,6 +17,7 @@ class ApiConfig {
   
   static String motwDetailUrl(String slug) => '$apiUrl/motw/$slug';
   static String motwCommentsUrl(String slug) => '$apiUrl/motw/$slug/comments';
+  static String reportCommentUrl(int id) => '$apiUrl/comments/$id/report';
   
   // Image URL helper
   static String getImageUrl(String? path) {

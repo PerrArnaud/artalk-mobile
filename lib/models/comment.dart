@@ -9,6 +9,7 @@ class Comment {
   final String? motwSlug;
   final int? parentCommentId;
   final List<Comment> replies;
+  final bool reportedByCurrentUser;
 
   Comment({
     required this.id,
@@ -19,6 +20,7 @@ class Comment {
     this.motwSlug,
     this.parentCommentId,
     this.replies = const [],
+    this.reportedByCurrentUser = false,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class Comment {
       motwSlug: json['motwSlug'] as String?,
       parentCommentId: json['parentCommentId'] as int?,
       replies: replies,
+      reportedByCurrentUser: json['reportedByCurrentUser'] as bool? ?? false,
     );
   }
 
@@ -61,6 +64,21 @@ class Comment {
       'motwSlug': motwSlug,
       'parentCommentId': parentCommentId,
       'replies': replies.map((r) => r.toJson()).toList(),
+      'reportedByCurrentUser': reportedByCurrentUser,
     };
+  }
+
+  Comment copyWith({bool? reportedByCurrentUser}) {
+    return Comment(
+      id: id,
+      content: content,
+      createdAt: createdAt,
+      validated: validated,
+      user: user,
+      motwSlug: motwSlug,
+      parentCommentId: parentCommentId,
+      replies: replies,
+      reportedByCurrentUser: reportedByCurrentUser ?? this.reportedByCurrentUser,
+    );
   }
 }

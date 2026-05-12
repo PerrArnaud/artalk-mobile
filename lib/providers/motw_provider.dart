@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/motw.dart';
+import '../models/art_type.dart';
 import '../config/api_config.dart';
 import '../services/api_service.dart';
 
@@ -13,11 +14,36 @@ class MOTWProvider with ChangeNotifier {
   int _totalPages = 1;
   bool _hasMore = true;
 
+  List<ArtType> _artTypes = [];
+  int? _selectedArtTypeId;
+
   List<MOTW> get motwList => _motwList;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get currentPage => _currentPage;
   bool get hasMore => _hasMore;
+  List<ArtType> get artTypes => _artTypes;
+  int? get selectedArtTypeId => _selectedArtTypeId;
+
+  Future<void> fetchArtTypes() async {
+    try {
+      final response = await _apiService.get(ApiConfig.artTypesUrl);
+      final data = await _apiService.handleResponse(response);
+      if (data['success'] == true && data['data'] != null) {
+        _artTypes = (data['data'] as List<dynamic>)
+            .map((json) => ArtType.fromJson(json as Map<String, dynamic>))
+            .toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  void setArtTypeFilter(int? artTypeId) {
+    _selectedArtTypeId = artTypeId;
+    fetchMOTWList(refresh: true);
+  }
 
   Future<void> fetchMOTWList({bool refresh = false}) async {
     if (_isLoading) return;
@@ -33,7 +59,10 @@ class MOTWProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final url = '${ApiConfig.motwUrl}?page=$_currentPage&limit=10';
+      var url = '${ApiConfig.motwUrl}?page=$_currentPage&limit=10';
+      if (_selectedArtTypeId != null) {
+        url += '&artTypeId=$_selectedArtTypeId';
+      }
       final response = await _apiService.get(url);
       
       final data = await _apiService.handleResponse(response);
@@ -50,7 +79,6 @@ class MOTWProvider with ChangeNotifier {
           _motwList.addAll(newMotws);
         }
 
-        // Handle pagination
         if (data['pagination'] != null) {
           final pagination = data['pagination'] as Map<String, dynamic>;
           _totalPages = pagination['pages'] as int? ?? 1;

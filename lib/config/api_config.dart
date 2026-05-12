@@ -14,6 +14,7 @@ class ApiConfig {
   static String get meUrl => '$apiUrl/me';
   static String get motwUrl => '$apiUrl/motw';
   static String get commentsUrl => '$apiUrl/comments';
+  static String get artTypesUrl => '$apiUrl/art-types';
   
   static String motwDetailUrl(String slug) => '$apiUrl/motw/$slug';
   static String motwCommentsUrl(String slug) => '$apiUrl/motw/$slug/comments';

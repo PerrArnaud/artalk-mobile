@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadMOTW() {
     final motwProvider = Provider.of<MOTWProvider>(context, listen: false);
+    motwProvider.fetchArtTypes();
     motwProvider.fetchMOTWList(refresh: true);
   }
 
@@ -141,31 +142,80 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          if (motwProvider.motwList.isEmpty) {
-            return const Center(
-              child: Text('No artworks available'),
-            );
-          }
-
           return RefreshIndicator(
             onRefresh: () => motwProvider.fetchMOTWList(refresh: true),
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(8),
-              itemCount: motwProvider.motwList.length +
-                  (motwProvider.hasMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == motwProvider.motwList.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
+            child: Column(
+              children: [
+                // Barre de filtres
+                if (motwProvider.artTypes.isNotEmpty)
+                  SizedBox(
+                    height: 52,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: const Text('Tous'),
+                            selected: motwProvider.selectedArtTypeId == null,
+                            onSelected: (_) => motwProvider.setArtTypeFilter(null),
+                            selectedColor: Colors.deepPurple,
+                            labelStyle: TextStyle(
+                              color: motwProvider.selectedArtTypeId == null
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            showCheckmark: false,
+                          ),
+                        ),
+                        ...motwProvider.artTypes.map((artType) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(artType.name),
+                            selected: motwProvider.selectedArtTypeId == artType.id,
+                            onSelected: (_) => motwProvider.setArtTypeFilter(
+                              motwProvider.selectedArtTypeId == artType.id
+                                  ? null
+                                  : artType.id,
+                            ),
+                            selectedColor: Colors.deepPurple,
+                            labelStyle: TextStyle(
+                              color: motwProvider.selectedArtTypeId == artType.id
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            showCheckmark: false,
+                          ),
+                        )),
+                      ],
                     ),
-                  );
-                }
-
-                return MOTWCard(motw: motwProvider.motwList[index]);
-              },
+                  ),
+                // Liste des œuvres
+                Expanded(
+                  child: motwProvider.motwList.isEmpty
+                      ? const Center(child: Text('Aucune œuvre disponible'))
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(8),
+                          itemCount: motwProvider.motwList.length +
+                              (motwProvider.hasMore ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == motwProvider.motwList.length) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
+                            return MOTWCard(motw: motwProvider.motwList[index]);
+                          },
+                        ),
+                ),
+              ],
             ),
           );
         },

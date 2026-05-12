@@ -98,6 +98,23 @@ class MOTWCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (motw.artType != null) ...[
+                    const SizedBox(height: 8),
+                    Chip(
+                      label: Text(
+                        motw.artType!.name,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+                      backgroundColor: Colors.deepPurple.withOpacity(0.1),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
                 ],
               ),
             ),

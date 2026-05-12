@@ -1,3 +1,5 @@
+import 'art_type.dart';
+
 class MOTW {
   final int id;
   final String name;
@@ -7,6 +9,7 @@ class MOTW {
   final String slug;
   final String? visual;
   final int commentCount;
+  final ArtType? artType;
 
   MOTW({
     required this.id,
@@ -17,6 +20,7 @@ class MOTW {
     required this.slug,
     this.visual,
     required this.commentCount,
+    this.artType,
   });
 
   factory MOTW.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,9 @@ class MOTW {
       slug: json['slug'] as String,
       visual: json['visual'] as String?,
       commentCount: json['commentCount'] as int? ?? 0,
+      artType: json['artType'] != null
+          ? ArtType.fromJson(json['artType'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -42,6 +49,7 @@ class MOTW {
       'slug': slug,
       'visual': visual,
       'commentCount': commentCount,
+      'artType': artType != null ? {'id': artType!.id, 'name': artType!.name} : null,
     };
   }
 }

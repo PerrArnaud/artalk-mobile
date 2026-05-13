@@ -106,6 +106,7 @@ class _MOTWDetailScreenState extends State<MOTWDetailScreen> {
                             if (_motw!.visual != null && _motw!.visual!.isNotEmpty)
                               CachedNetworkImage(
                                 imageUrl: ApiConfig.getImageUrl(_motw!.visual),
+                                httpHeaders: const {'ngrok-skip-browser-warning': 'true'},
                                 width: double.infinity,
                                 height: 250,
                                 fit: BoxFit.cover,

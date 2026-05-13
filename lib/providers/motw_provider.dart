@@ -42,11 +42,12 @@ class MOTWProvider with ChangeNotifier {
 
   void setArtTypeFilter(int? artTypeId) {
     _selectedArtTypeId = artTypeId;
+    notifyListeners();
     fetchMOTWList(refresh: true);
   }
 
   Future<void> fetchMOTWList({bool refresh = false}) async {
-    if (_isLoading) return;
+    if (!refresh && _isLoading) return;
     
     if (refresh) {
       _currentPage = 1;

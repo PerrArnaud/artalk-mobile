@@ -35,6 +35,7 @@ class MOTWCard extends StatelessWidget {
                     const BorderRadius.vertical(top: Radius.circular(12)),
                 child: CachedNetworkImage(
                   imageUrl: ApiConfig.getImageUrl(motw.visual),
+                  httpHeaders: const {'ngrok-skip-browser-warning': 'true'},
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,

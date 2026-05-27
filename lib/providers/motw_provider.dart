@@ -12,6 +12,7 @@ class MOTWProvider with ChangeNotifier {
   String? _errorMessage;
   int _currentPage = 1;
   int _totalPages = 1;
+  int _totalCount = 0;
   bool _hasMore = true;
 
   List<ArtType> _artTypes = [];
@@ -21,6 +22,8 @@ class MOTWProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
+  int get totalCount => _totalCount;
   bool get hasMore => _hasMore;
   List<ArtType> get artTypes => _artTypes;
   int? get selectedArtTypeId => _selectedArtTypeId;
@@ -52,6 +55,7 @@ class MOTWProvider with ChangeNotifier {
     if (refresh) {
       _currentPage = 1;
       _motwList.clear();
+      _totalCount = 0;
       _hasMore = true;
     }
 
@@ -83,6 +87,7 @@ class MOTWProvider with ChangeNotifier {
         if (data['pagination'] != null) {
           final pagination = data['pagination'] as Map<String, dynamic>;
           _totalPages = pagination['pages'] as int? ?? 1;
+          _totalCount = (pagination['total'] as num?)?.toInt() ?? 0;
           _hasMore = _currentPage < _totalPages;
         } else {
           _hasMore = false;

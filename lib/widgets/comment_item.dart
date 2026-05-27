@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../config/api_config.dart';
 import '../models/comment.dart';
 import '../providers/auth_provider.dart';
 import '../providers/comment_provider.dart';
@@ -36,12 +38,35 @@ class CommentItem extends StatefulWidget {
 class _CommentItemState extends State<CommentItem> {
   bool _showReplyBox = false;
   bool _showAllReplies = false;
+  bool _isLiking = false;
   final TextEditingController _replyController = TextEditingController();
 
   @override
   void dispose() {
     _replyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleLike() async {
+    if (_isLiking) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Connectez-vous pour liker un commentaire')),
+      );
+      return;
+    }
+
+    setState(() => _isLiking = true);
+
+    final commentProvider = Provider.of<CommentProvider>(context, listen: false);
+    await commentProvider.likeComment(
+      commentId: widget.comment.id,
+      motwSlug: widget.motwSlug,
+    );
+
+    if (mounted) setState(() => _isLiking = false);
   }
 
   Future<void> _handleReply() async {
@@ -174,12 +199,21 @@ class _CommentItemState extends State<CommentItem> {
                   CircleAvatar(
                     radius: 16,
                     backgroundColor: Colors.deepPurple,
-                    child: Text(
-                      widget.comment.user.name.isNotEmpty
-                          ? widget.comment.user.name[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
+                    backgroundImage: widget.comment.user.avatar != null &&
+                            widget.comment.user.avatar!.isNotEmpty
+                        ? CachedNetworkImageProvider(
+                            ApiConfig.getImageUrl(widget.comment.user.avatar),
+                          )
+                        : null,
+                    child: (widget.comment.user.avatar == null ||
+                            widget.comment.user.avatar!.isEmpty)
+                        ? Text(
+                            widget.comment.user.name.isNotEmpty
+                                ? widget.comment.user.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(color: Colors.white, fontSize: 16),
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -232,22 +266,76 @@ class _CommentItemState extends State<CommentItem> {
                 style: const TextStyle(fontSize: 14),
               ),
 
-              // Reply button (only for top-level comments)
-              if (!widget.isReply) ...[
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() => _showReplyBox = !_showReplyBox);
-                  },
-                  icon: const Icon(Icons.reply, size: 16),
-                  label: const Text('Répondre'),
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(0, 0),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              // Action row: like + reply
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  // Like button
+                  Consumer<CommentProvider>(
+                    builder: (context, commentProvider, _) {
+                      final comment = commentProvider
+                          .getComments(widget.motwSlug)
+                          .expand((c) => [c, ...c.replies])
+                          .firstWhere((c) => c.id == widget.comment.id,
+                              orElse: () => widget.comment);
+                      return InkWell(
+                        onTap: _isLiking ? null : _handleLike,
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _isLiking
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 1.5),
+                                    )
+                                  : Icon(
+                                      comment.likedByCurrentUser
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      size: 16,
+                                      color: comment.likedByCurrentUser
+                                          ? Colors.red
+                                          : Colors.grey[600],
+                                    ),
+                              if (comment.likesCount > 0) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${comment.likesCount}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: comment.likedByCurrentUser
+                                        ? Colors.red
+                                        : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  // Reply button (only for top-level comments)
+                  if (!widget.isReply)
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() => _showReplyBox = !_showReplyBox);
+                      },
+                      icon: const Icon(Icons.reply, size: 16),
+                      label: const Text('Répondre'),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                ],
+              ),
 
               // Reply input box
               if (_showReplyBox) ...[

@@ -114,4 +114,47 @@ class ApiService {
       throw Exception(message);
     }
   }
+
+  Future<http.Response> postMultipart(
+    String url,
+    String fieldName,
+    String filePath, {
+    String? mimeType,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      });
+
+      final file = await http.MultipartFile.fromPath(
+        fieldName,
+        filePath,
+        contentType: mimeType != null
+            ? http.MediaType.parse(mimeType)
+            : null,
+      );
+      request.files.add(file);
+
+      // Use a custom HttpClient to allow self-signed certs in dev
+      final ioClient = HttpClient()
+        ..badCertificateCallback =
+            ((X509Certificate cert, String host, int port) => true);
+      final httpClient = http.Client();
+
+      try {
+        final streamedResponse = await request.send();
+        return await http.Response.fromStream(streamedResponse);
+      } finally {
+        httpClient.close();
+        ioClient.close();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -10,6 +10,8 @@ class Comment {
   final int? parentCommentId;
   final List<Comment> replies;
   final bool reportedByCurrentUser;
+  final int likesCount;
+  final bool likedByCurrentUser;
 
   Comment({
     required this.id,
@@ -21,6 +23,8 @@ class Comment {
     this.parentCommentId,
     this.replies = const [],
     this.reportedByCurrentUser = false,
+    this.likesCount = 0,
+    this.likedByCurrentUser = false,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -31,6 +35,7 @@ class Comment {
       name: userJson['name'] as String,
       email: '', // Not provided in comment response
       role: '', // Not provided in comment response
+      avatar: userJson['avatar'] as String?,
     );
 
     // Parse replies if present
@@ -51,6 +56,8 @@ class Comment {
       parentCommentId: json['parentCommentId'] as int?,
       replies: replies,
       reportedByCurrentUser: json['reportedByCurrentUser'] as bool? ?? false,
+      likesCount: json['likesCount'] as int? ?? 0,
+      likedByCurrentUser: json['likedByCurrentUser'] as bool? ?? false,
     );
   }
 
@@ -65,10 +72,17 @@ class Comment {
       'parentCommentId': parentCommentId,
       'replies': replies.map((r) => r.toJson()).toList(),
       'reportedByCurrentUser': reportedByCurrentUser,
+      'likesCount': likesCount,
+      'likedByCurrentUser': likedByCurrentUser,
     };
   }
 
-  Comment copyWith({bool? reportedByCurrentUser}) {
+  Comment copyWith({
+    bool? reportedByCurrentUser,
+    int? likesCount,
+    bool? likedByCurrentUser,
+    List<Comment>? replies,
+  }) {
     return Comment(
       id: id,
       content: content,
@@ -77,8 +91,10 @@ class Comment {
       user: user,
       motwSlug: motwSlug,
       parentCommentId: parentCommentId,
-      replies: replies,
+      replies: replies ?? this.replies,
       reportedByCurrentUser: reportedByCurrentUser ?? this.reportedByCurrentUser,
+      likesCount: likesCount ?? this.likesCount,
+      likedByCurrentUser: likedByCurrentUser ?? this.likedByCurrentUser,
     );
   }
 }

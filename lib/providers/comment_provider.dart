@@ -3,6 +3,8 @@ import '../models/comment.dart';
 import '../config/api_config.dart';
 import '../services/api_service.dart';
 
+enum CommentSortOrder { recent, likes }
+
 class CommentProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
   
@@ -10,6 +12,7 @@ class CommentProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isSubmitting = false;
   String? _errorMessage;
+  CommentSortOrder _sortOrder = CommentSortOrder.recent;
 
   List<Comment> getComments(String motwSlug) {
     return _commentsByMotw[motwSlug] ?? [];
@@ -18,6 +21,14 @@ class CommentProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
+  CommentSortOrder get sortOrder => _sortOrder;
+
+  void setSortOrder(String motwSlug, CommentSortOrder order) {
+    if (_sortOrder == order) return;
+    _sortOrder = order;
+    notifyListeners();
+    fetchComments(motwSlug, refresh: true);
+  }
 
   Future<void> fetchComments(String motwSlug, {bool refresh = false}) async {
     if (_isLoading) return;
@@ -27,7 +38,8 @@ class CommentProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final url = '${ApiConfig.motwCommentsUrl(motwSlug)}?page=1&limit=50';
+      final sortParam = _sortOrder == CommentSortOrder.likes ? 'likes' : 'recent';
+      final url = '${ApiConfig.motwCommentsUrl(motwSlug)}?page=1&limit=50&sort=$sortParam';
       final response = await _apiService.get(url);
       
       final data = await _apiService.handleResponse(response);
@@ -97,6 +109,56 @@ class CommentProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> likeComment({
+    required int commentId,
+    required String motwSlug,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        ApiConfig.likeCommentUrl(commentId),
+        {},
+        includeAuth: true,
+      );
+
+      final data = await _apiService.handleResponse(response);
+
+      if (data['success'] == true) {
+        final liked = data['liked'] as bool;
+        final likesCount = data['likesCount'] as int;
+
+        _updateCommentLike(motwSlug, commentId, liked: liked, likesCount: likesCount);
+        notifyListeners();
+        return true;
+      }
+
+      _errorMessage = data['message'] as String? ?? 'Échec du like';
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  void _updateCommentLike(String motwSlug, int commentId, {required bool liked, required int likesCount}) {
+    final comments = _commentsByMotw[motwSlug];
+    if (comments == null) return;
+
+    _commentsByMotw[motwSlug] = comments.map((c) {
+      if (c.id == commentId) {
+        return c.copyWith(likedByCurrentUser: liked, likesCount: likesCount);
+      }
+      final updatedReplies = c.replies.map((r) {
+        if (r.id == commentId) {
+          return r.copyWith(likedByCurrentUser: liked, likesCount: likesCount);
+        }
+        return r;
+      }).toList();
+      return c.copyWith(replies: updatedReplies);
+    }).toList();
+  }
+
   Future<bool> reportComment({
     required int commentId,
     required String reason,
@@ -121,23 +183,12 @@ class CommentProvider with ChangeNotifier {
             if (c.id == commentId) {
               return c.copyWith(reportedByCurrentUser: true);
             }
-            // Also check replies
             final updatedReplies = c.replies.map((r) {
               return r.id == commentId
                   ? r.copyWith(reportedByCurrentUser: true)
                   : r;
             }).toList();
-            return Comment(
-              id: c.id,
-              content: c.content,
-              createdAt: c.createdAt,
-              validated: c.validated,
-              user: c.user,
-              motwSlug: c.motwSlug,
-              parentCommentId: c.parentCommentId,
-              replies: updatedReplies,
-              reportedByCurrentUser: c.reportedByCurrentUser,
-            );
+            return c.copyWith(replies: updatedReplies);
           }).toList();
           _commentsByMotw[entry.key] = updated;
         }

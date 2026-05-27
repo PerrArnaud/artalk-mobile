@@ -170,22 +170,60 @@ class _MOTWDetailScreenState extends State<MOTWDetailScreen> {
 
                             const Divider(),
 
-                            // Comments Section
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.comment, color: Colors.deepPurple),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Comments (${_motw!.commentCount})',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            // Comments Section header + sort toggle
+                            Consumer<CommentProvider>(
+                              builder: (context, commentProvider, _) {
+                                return Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.comment, color: Colors.deepPurple),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Commentaires (${_motw!.commentCount})',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      // Sort toggle
+                                      ToggleButtons(
+                                        isSelected: [
+                                          commentProvider.sortOrder == CommentSortOrder.recent,
+                                          commentProvider.sortOrder == CommentSortOrder.likes,
+                                        ],
+                                        onPressed: (index) {
+                                          commentProvider.setSortOrder(
+                                            widget.motwSlug,
+                                            index == 0
+                                                ? CommentSortOrder.recent
+                                                : CommentSortOrder.likes,
+                                          );
+                                        },
+                                        borderRadius: BorderRadius.circular(8),
+                                        selectedColor: Colors.white,
+                                        fillColor: Colors.deepPurple,
+                                        color: Colors.grey[600],
+                                        constraints: const BoxConstraints(
+                                          minHeight: 32,
+                                          minWidth: 40,
+                                        ),
+                                        children: const [
+                                          Tooltip(
+                                            message: 'Plus récents',
+                                            child: Icon(Icons.access_time, size: 18),
+                                          ),
+                                          Tooltip(
+                                            message: 'Plus likés',
+                                            child: Icon(Icons.favorite, size: 18),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
 
                             Consumer<CommentProvider>(

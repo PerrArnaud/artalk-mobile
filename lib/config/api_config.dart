@@ -12,6 +12,7 @@ class ApiConfig {
   static String get registerUrl => '$apiUrl/register';
   static String get loginUrl => '$apiUrl/login';
   static String get meUrl => '$apiUrl/me';
+  static String get avatarUploadUrl => '$apiUrl/profile/avatar';
   static String get motwUrl => '$apiUrl/motw';
   static String get commentsUrl => '$apiUrl/comments';
   static String get artTypesUrl => '$apiUrl/art-types';
@@ -19,6 +20,7 @@ class ApiConfig {
   static String motwDetailUrl(String slug) => '$apiUrl/motw/$slug';
   static String motwCommentsUrl(String slug) => '$apiUrl/motw/$slug/comments';
   static String reportCommentUrl(int id) => '$apiUrl/comments/$id/report';
+  static String likeCommentUrl(int id) => '$apiUrl/comments/$id/like';
   
   // Image URL helper
   static String getImageUrl(String? path) {

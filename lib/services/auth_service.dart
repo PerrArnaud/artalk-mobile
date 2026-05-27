@@ -37,6 +37,7 @@ class AuthService {
           email: userData['email'] as String,
           name: userData['name'] as String,
           role: userData['role'] as String,
+          avatar: userData['avatar'] as String?,
         );
       }
 
@@ -82,6 +83,7 @@ class AuthService {
           email: userData['email'] as String,
           name: userData['name'] as String,
           role: userData['role'] as String,
+          avatar: userData['avatar'] as String?,
         );
 
         return ApiResponse(
@@ -112,7 +114,10 @@ class AuthService {
       final data = await _apiService.handleResponse(response);
 
       if (data['success'] == true && data['data'] != null) {
-        final user = User.fromJson(data['data'] as Map<String, dynamic>);
+        final userData = data['data'] as Map<String, dynamic>;
+        final user = User.fromJson(userData);
+        // Keep stored avatar in sync
+        await _storageService.saveAvatar(user.avatar);
         return ApiResponse(
           success: true,
           data: user,
@@ -148,6 +153,7 @@ class AuthService {
         email: userData['email']!,
         name: userData['name'] ?? '',
         role: userData['role'] ?? '',
+        avatar: userData['avatar'],
       );
     }
     

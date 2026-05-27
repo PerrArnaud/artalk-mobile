@@ -114,6 +114,18 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refreshUser() async {
+    try {
+      final response = await _authService.getCurrentUser();
+      if (response.success && response.data != null) {
+        _user = response.data;
+        notifyListeners();
+      }
+    } catch (_) {
+      // Ignore refresh errors silently
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();

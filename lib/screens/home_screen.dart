@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../providers/motw_provider.dart';
 import '../widgets/motw_card.dart';
 import 'login_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -76,6 +77,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 onSelected: (value) {
                   if (value == 'logout') {
                     _handleLogout();
+                  } else if (value == 'profile') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
                   }
                 },
                 icon: const Icon(Icons.account_circle),
@@ -97,6 +102,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person, color: Colors.deepPurple),
+                        SizedBox(width: 8),
+                        Text('Mon profil'),
+                      ],
+                    ),
+                  ),
                   const PopupMenuItem(
                     value: 'logout',
                     child: Row(
@@ -201,13 +216,51 @@ class _HomeScreenState extends State<HomeScreen> {
                           controller: _scrollController,
                           padding: const EdgeInsets.all(8),
                           itemCount: motwProvider.motwList.length +
-                              (motwProvider.hasMore ? 1 : 0),
+                              (motwProvider.totalPages > 1 ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == motwProvider.motwList.length) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: CircularProgressIndicator(),
+                              if (motwProvider.isLoading) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              if (motwProvider.hasMore) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 16, horizontal: 24),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        '${motwProvider.motwList.length} / ${motwProvider.totalCount} publications',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 13),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      OutlinedButton.icon(
+                                        onPressed: () =>
+                                            motwProvider.fetchMOTWList(),
+                                        icon: const Icon(Icons.expand_more),
+                                        label: const Text('Charger plus'),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.deepPurple,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Center(
+                                  child: Text(
+                                    '${motwProvider.totalCount} publications au total',
+                                    style: TextStyle(
+                                        color: Colors.grey[600], fontSize: 13),
+                                  ),
                                 ),
                               );
                             }

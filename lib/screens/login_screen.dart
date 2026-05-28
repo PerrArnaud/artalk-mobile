@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    'Art Forum',
+                    'Artalk',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,

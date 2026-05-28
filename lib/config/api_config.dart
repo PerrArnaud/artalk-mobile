@@ -3,7 +3,7 @@ class ApiConfig {
   // - Développement (ngrok) : https://VOTRE_ID.ngrok-free.dev
   // - Production            : https://votre-domaine.com
   // Modifier uniquement cette constante pour changer l'environnement.
-  static const String baseUrl = 'https://unwept-marleen-confineable.ngrok-free.dev';
+  static const String baseUrl = 'https://std40.beaupeyrat.com';
   static const String apiPath = '/api';
   
   static String get apiUrl => '$baseUrl$apiPath';

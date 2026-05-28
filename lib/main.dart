@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CommentProvider()),
       ],
       child: MaterialApp(
-        title: 'Art Forum',
+        title: 'Artalk',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
